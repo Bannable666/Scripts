@@ -4,7 +4,12 @@ local Config = {
     ObbyFarm = true,
     CrateFarm = true,
     AutoRebirth = true,
-    InteractionDelay = 0.1
+    InteractionDelay = 0.1,
+    RebirthRequirements = {
+        Moon = 21,
+        Mars = 41,
+        Venus = 81
+    }
 }
 
 -- Services
@@ -56,23 +61,28 @@ function GameManager:InitializeObbies()
     return {
         Easy = {
             Button = obbies:WaitForChild("EasyObby"):WaitForChild("Finish"):WaitForChild("Button"),
-            Block = obbies:WaitForChild("EasyObby"):WaitForChild("Decorations"):WaitForChild("ObbySign"):WaitForChild("Border")
+            Block = obbies:WaitForChild("EasyObby"):WaitForChild("Decorations"):WaitForChild("ObbySign"):WaitForChild("Border"),
+            RebirthRequired = 0
         },
         Hard = {
             Button = obbies:WaitForChild("HardObby"):WaitForChild("Finish"):WaitForChild("Button"),
-            Block = obbies:WaitForChild("HardObby"):WaitForChild("Decorations"):WaitForChild("ObbySign"):WaitForChild("Border")
+            Block = obbies:WaitForChild("HardObby"):WaitForChild("Decorations"):WaitForChild("ObbySign"):WaitForChild("Border"),
+            RebirthRequired = 0
         },
         Moon = {
             Button = obbies:WaitForChild("GravityTowerObby"):WaitForChild("Finish"):WaitForChild("Button"),
-            Block = obbies:WaitForChild("GravityTowerObby"):WaitForChild("Decorations"):WaitForChild("ObbySign"):WaitForChild("Border")
+            Block = obbies:WaitForChild("GravityTowerObby"):WaitForChild("Decorations"):WaitForChild("ObbySign"):WaitForChild("Border"),
+            RebirthRequired = Config.RebirthRequirements.Moon
         },
         Mars = {
             Button = obbies:WaitForChild("IceCavernObby"):WaitForChild("Finish"):WaitForChild("Button"),
-            Block = obbies:WaitForChild("IceCavernObby"):WaitForChild("Decorations"):WaitForChild("ObbySign"):WaitForChild("Border")
+            Block = obbies:WaitForChild("IceCavernObby"):WaitForChild("Decorations"):WaitForChild("ObbySign"):WaitForChild("Border"),
+            RebirthRequired = Config.RebirthRequirements.Mars
         },
         Venus = {
             Button = obbies:WaitForChild("VolcanoObby"):WaitForChild("Finish"):WaitForChild("Button"),
-            Block = obbies:WaitForChild("VolcanoObby"):WaitForChild("Decorations"):WaitForChild("ObbySign"):WaitForChild("Border")
+            Block = obbies:WaitForChild("VolcanoObby"):WaitForChild("Decorations"):WaitForChild("ObbySign"):WaitForChild("Border"),
+            RebirthRequired = Config.RebirthRequirements.Venus
         }
     }
 end
@@ -150,11 +160,19 @@ function GameManager:StartAutoRebirth()
 end
 
 function GameManager:StartObbyFarm()
-    local function farmObby(obby)
+    local function canAccessObby(obby)
+        return self.Rebirths.Value >= obby.RebirthRequired
+    end
+
+    local function farmObby(obbyName, obby)
         task.spawn(function()
             while true do
                 task.wait()
-                if Config.ObbyFarm and self.HumanoidRootPart and obby.Button and not obby.Block.CanCollide then
+                if Config.ObbyFarm and 
+                   self.HumanoidRootPart and 
+                   obby.Button and 
+                   not obby.Block.CanCollide and 
+                   canAccessObby(obby) then
                     local oldPos = self.HumanoidRootPart.CFrame
                     firetouchinterest(obby.Button, self.HumanoidRootPart, 0)
                     firetouchinterest(obby.Button, self.HumanoidRootPart, 1)
@@ -165,8 +183,8 @@ function GameManager:StartObbyFarm()
         end)
     end
     
-    for _, obby in pairs(self.Obbies) do
-        farmObby(obby)
+    for obbyName, obby in pairs(self.Obbies) do
+        farmObby(obbyName, obby)
     end
 end
 
