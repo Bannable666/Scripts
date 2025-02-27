@@ -1,4 +1,13 @@
-return function(Config)
+local Config = {
+    AutoPurchase = true,
+    ObbyFarm = true,
+    CrateFarm = true,
+    AutoRebirth = true,
+    OpenDoors = true,
+    AutoBlender = true,
+    Time = .4
+}
+
 -- Services
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
