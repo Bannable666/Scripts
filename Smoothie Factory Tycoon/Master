@@ -1,11 +1,12 @@
--- Toggles
-local AutoPurchase = true
-local ObbyFarm = true
-local CrateFarm = true
-local AutoRebirth = true
-local OpenDoors = true
-local AutoBlender = true
-local Time = .4
+local Config = {
+    AutoPurchase = true,
+    ObbyFarm = true,
+    CrateFarm = true,
+    AutoRebirth = true,
+    OpenDoors = false,
+    AutoBlender = false,
+    Time = .4
+}
 
 -- Services
 local Players = game:GetService("Players")
@@ -85,8 +86,8 @@ local function OpenFactoryDoors(factoryModels)
             if v:IsA("Model") and v.Name == model then
                 for _, button in pairs(v:GetDescendants()) do
                     if button:IsA("ProximityPrompt") and button.Name == "OpenDoorPrompt" and button.Enabled == true then
+                        wait(1)
                         fireproximityprompt(button)
-                        task.wait(Time)
                     end
                 end
             end
@@ -115,7 +116,7 @@ local function FarmObbies()
             local OldPos = HumanoidRootPart.CFrame
             firetouchinterest(obby.Finish.Button, HumanoidRootPart, 0)
             firetouchinterest(obby.Finish.Button, HumanoidRootPart, 1)
-            task.wait(Time)
+            task.wait(Config.Time)
             HumanoidRootPart.CFrame = OldPos
         end
     end
@@ -144,15 +145,15 @@ end)
 while true do
     task.wait()
     if TycoonFound then
-        if AutoPurchase then PurchaseItems() end
-        if AutoRebirth then Rebirth() end
-        if AutoBlender then ActivateBlenders() end
-        if OpenDoors then
+        if Config.AutoPurchase then PurchaseItems() end
+        if Config.AutoRebirth then Rebirth() end
+        if Config.AutoBlender then ActivateBlenders() end
+        if Config.OpenDoors then
             OpenFactoryDoors({"Main_JarFactory", "Basement_JarFactory", "Moon_JarFactory1", "Moon_JarFactory2", "Mars_JarFactory1", "Mars_JarFactory2", "Venus_JarFactory1", "Venus_JarFactory2"})
             OpenPackagerDoors({"Main_JarPackager", "Basement_JarPackager", "Moon_JarPackager1", "Moon_JarPackager2", "Mars_JarPackager1", "Mars_JarPackager2", "Venus_JarPackager1", "Venus_JarPackager2"})
         end
     end
 
-    if ObbyFarm and HumanoidRootPart then FarmObbies() end
-    if CrateFarm and HumanoidRootPart then FarmCrates() end
+    if Config.FarmObbies and HumanoidRootPart then FarmObbies() end
+    if Config.FarmCrates and HumanoidRootPart then FarmCrates() end
 end
