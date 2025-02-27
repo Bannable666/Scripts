@@ -2,7 +2,7 @@
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
+ 
 -- Locals/Assets
 local LocalPlayer = Players.LocalPlayer
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
@@ -144,6 +144,6 @@ while true do
         end
     end
 
-    if Config.FarmObbies and HumanoidRootPart then FarmObbies() end
-    if Config.FarmCrates and HumanoidRootPart then FarmCrates() end
+    if Config.ObbyFarm and HumanoidRootPart then FarmObbies() end
+    if Config.CrateFarm and HumanoidRootPart then FarmCrates() end
 end
