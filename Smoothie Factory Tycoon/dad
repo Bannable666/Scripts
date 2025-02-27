@@ -1,0 +1,150 @@
+return function(Config)
+-- Services
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+ 
+-- Locals/Assets
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+local Event = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Event")
+local FactoryComp = Event:WaitForChild("Factory Components")
+local Rebirths = LocalPlayer:WaitForChild("leaderstats"):WaitForChild("Rebirths")
+local Crates = Workspace:WaitForChild("RandomCrateDropsFolder")
+local Tycoons = Workspace:WaitForChild("Tycoons")
+local ClaimedPlot = LocalPlayer:WaitForChild("Values"):WaitForChild("ClaimedPlot")
+local OwnedTycoon, TycoonFound = nil, false
+
+-- Obby Stuff
+local Obbies = Workspace:WaitForChild("Obbies")
+local ObbyData = {
+    {Obbies:WaitForChild("EasyObby"), 0},
+    {Obbies:WaitForChild("HardObby"), 0},
+    {Obbies:WaitForChild("GravityTowerObby"), 21},
+    {Obbies:WaitForChild("IceCavernObby"), 41},
+    {Obbies:WaitForChild("VolcanoObby"), 81}
+}
+
+-- Remotes
+local BuyRemote = Event:WaitForChild("PurchaseButton")
+local RebirthRemote = FactoryComp:WaitForChild("S_Rebirth")
+
+-- Functions
+local function OnCharacterAdded(NewCharacter)
+    Character = NewCharacter
+    HumanoidRootPart = NewCharacter:WaitForChild("HumanoidRootPart")
+end
+
+local function CheckTycoonOwnership()
+    for _, v in pairs(Tycoons:GetDescendants()) do
+        if v:IsA("ObjectValue") and v.Name == "Owner" and v.Value == LocalPlayer then
+            OwnedTycoon, TycoonFound = v.Parent.Name, true
+            break
+        end
+    end
+end
+
+local function PurchaseItems()
+    for _, container in pairs({"PurchaseButtons", "UpgradeButtons"}) do
+        for _, v in pairs(Tycoons[OwnedTycoon][container]:GetDescendants()) do
+            if v:IsA("TextLabel") and v.Name == "Price" and v.TextColor3 == Color3.fromRGB(114, 255, 112) then
+                BuyRemote:FireServer(v.Parent.Parent.Parent.ButtonBase.Parent.Name)
+            end
+        end
+    end
+end
+
+local function Rebirth()
+    for _, v in pairs(Tycoons[OwnedTycoon].RebirthButtons:GetDescendants()) do
+        if v:IsA("TextLabel") and v.Name == "Price" and v.TextColor3 == Color3.fromRGB(114, 255, 112) then
+            RebirthRemote:FireServer()
+        end
+    end
+end
+
+local function ActivateBlenders()
+    for _, v in pairs(Tycoons[OwnedTycoon].Purchases:GetDescendants()) do
+        if v.Name == "ActivationLight" and v.Color == Color3.fromRGB(0, 255, 0) then
+            fireproximityprompt(v.Parent.Button.Attachment.ActivateBlender)
+        end
+    end
+end
+
+local function OpenFactoryDoors(factoryModels)
+    for _, model in pairs(factoryModels) do
+        for _, v in pairs(Tycoons[OwnedTycoon].ProcessingMachines:GetDescendants()) do
+            if v:IsA("Model") and v.Name == model then
+                for _, button in pairs(v:GetDescendants()) do
+                    if button:IsA("ProximityPrompt") and button.Name == "OpenDoorPrompt" and button.Enabled == true then
+                        wait(1)
+                        fireproximityprompt(button)
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function OpenPackagerDoors(packagerModels)
+    for _, model in pairs(packagerModels) do
+        for _, v in pairs(Tycoons[OwnedTycoon].ProcessingMachines:GetDescendants()) do
+            if v:IsA("Model") and v.Name == model then
+                for _, arrow in pairs(v:GetDescendants()) do
+                    if arrow:IsA("BillboardGui") and arrow.Name == "Arrow" then
+                        fireproximityprompt(arrow.Parent.Parent.Attachment.OpenDoorPrompt)
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function FarmObbies()
+    for _, data in ipairs(ObbyData) do
+        local obby, rebirthReq = data[1], data[2]
+        if obby.Finish.Button and not obby.Decorations.ObbySign.Border.CanCollide and Rebirths.Value >= rebirthReq then
+            local OldPos = HumanoidRootPart.CFrame
+            firetouchinterest(obby.Finish.Button, HumanoidRootPart, 0)
+            firetouchinterest(obby.Finish.Button, HumanoidRootPart, 1)
+            task.wait(Config.Time)
+            HumanoidRootPart.CFrame = OldPos
+        end
+    end
+end
+
+local function FarmCrates()
+    for _, v in pairs(Crates:GetDescendants()) do
+        if v:IsA("TouchTransmitter") then
+            firetouchinterest(v.Parent, HumanoidRootPart, 0)
+            firetouchinterest(v.Parent, HumanoidRootPart, 1)
+        end
+    end
+end
+
+-- Connections
+LocalPlayer.CharacterAdded:Connect(OnCharacterAdded)
+if ClaimedPlot.Value then CheckTycoonOwnership() end
+ClaimedPlot:GetPropertyChangedSignal("Value"):Connect(function()
+    if ClaimedPlot.Value then
+        task.wait(1)
+        CheckTycoonOwnership()
+    end
+end)
+
+-- Main Loop
+while true do
+    task.wait()
+    if TycoonFound then
+        if Config.AutoPurchase then PurchaseItems() end
+        if Config.AutoRebirth then Rebirth() end
+        if Config.AutoBlender then ActivateBlenders() end
+        if Config.OpenDoors then
+            OpenFactoryDoors({"Main_JarFactory", "Basement_JarFactory", "Moon_JarFactory1", "Moon_JarFactory2", "Mars_JarFactory1", "Mars_JarFactory2", "Venus_JarFactory1", "Venus_JarFactory2"})
+            OpenPackagerDoors({"Main_JarPackager", "Basement_JarPackager", "Moon_JarPackager1", "Moon_JarPackager2", "Mars_JarPackager1", "Mars_JarPackager2", "Venus_JarPackager1", "Venus_JarPackager2"})
+        end
+    end
+
+    if Config.ObbyFarm and HumanoidRootPart then FarmObbies() end
+    if Config.CrateFarm and HumanoidRootPart then FarmCrates() end
+end
