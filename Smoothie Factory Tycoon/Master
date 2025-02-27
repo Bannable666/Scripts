@@ -1,13 +1,3 @@
-local Config = {
-    AutoPurchase = true,
-    ObbyFarm = true,
-    CrateFarm = true,
-    AutoRebirth = true,
-    OpenDoors = false,
-    AutoBlender = false,
-    Time = .4
-}
-
 -- Services
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
