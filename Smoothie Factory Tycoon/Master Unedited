@@ -3,8 +3,8 @@ local Config = {
     ObbyFarm = true,
     CrateFarm = true,
     AutoRebirth = true,
-    OpenDoors = false,
-    AutoBlender = false,
+    OpenDoors = true,
+    AutoBlender = true,
     Time = .4
 }
 
